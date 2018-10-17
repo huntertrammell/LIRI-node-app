@@ -1,0 +1,28 @@
+{
+  "name": "LIRI-bot",
+  "version": "1.0.0",
+  "description": "A command line application run through Node JS that allows user to search information and will display results in the command line.",
+  "main": "keys.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huntertrammell/LIRI-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/huntertrammell/LIRI-bot/issues"
+  },
+  "homepage": "https://github.com/huntertrammell/LIRI-bot#readme",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "inquirer": "^6.2.0",
+    "inquirer-prompt-suggest": "^0.1.0",
+    "moment": "^2.22.2",
+    "node-spotify-api": "^1.0.7",
+    "request": "^2.88.0"
+  }
+}
