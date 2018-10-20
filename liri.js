@@ -6,9 +6,10 @@ const inquirer = require("inquirer");
 inquirer.registerPrompt('suggest', require('inquirer-prompt-suggest'));
 const request = require("request");
 const moment = require("moment")
+const chalk = require("chalk")
 const fs = require("fs")
 const Spotify = require('node-spotify-api');
-console.log('Hello human, I was given the name of Jinkō chinō by my creator, but I would prefer if you called me KEViN.\n')
+console.log(chalk.blue('Hello human, I was given the name of Jinkō chinō by my creator, but I would prefer if you called me KEViN.\n'))
 //begin function explains how to use the app to the user in the command line and initializes the search functions
 begin();
 
@@ -34,7 +35,7 @@ function begin(){
         else if (command == 'do-what-it-says'){
             manualSearch()
         } else {
-            console.log(`\nHuman what is this you ask of me?\nI am not capable of comprehending "${user.command}"!! \n\nREEeeEeEBBbbBOooOOOTTtTiiIINnnnNgGGGGg \n\n`)
+            console.log(chalk.red(`\nHuman what is this you ask of me?\nI am not capable of comprehending "${user.command}"!! \n\nREEeeEeEBBbbBOooOOOTTtTiiIINnnnNgGGGGg \n\n`))
         }
     })
 }
@@ -55,23 +56,28 @@ function concertSearch(){
             let bodyString = JSON.stringify(body).slice(0, -3).substring(1)
             const noData = "{warn=Not found}"
             if (bodyString == noData){
-                console.log('Human, try again. But correctly this time.\n')
+                console.log(chalk.red('\nHuman, try again. But correctly this time.\n'))
                 concertSearch()
             } else {
                 let data = JSON.parse(body)
                 const concertArr = data.slice(0, 5)
-                const performer = concertArr[0].lineup[0]
-                console.log(`\n${performer} Upcoming Tour Dates:\n`)
-                let i = 0
-                concertArr.forEach( () => {
-                    let venue = concertArr[i].venue.name
-                    let location = `${concertArr[i].venue.city}, ${concertArr[i].venue.region}`
-                    let date_No_Format = concertArr[i].datetime
-                    let date_Formatted = moment(date_No_Format, 'YYYY-MM-DD').format('MM/DD/YYYY')
-                    console.log(`Venue: ${venue}\nLocation: ${location}\nDate: ${date_Formatted}\n`)
-                    i++
-                });
-                restart()
+                if (concertArr[0]== undefined){
+                    console.log(chalk.red('\nIt does not appear that this artist is performing any time soon. Human, try searching an artist that is relevant.\n'))
+                    concertSearch()
+                } else {
+                    const performer = concertArr[0].lineup[0]
+                    console.log(chalk.blue(`\n${performer} Upcoming Tour Dates:\n`))
+                    let i = 0
+                    concertArr.forEach( () => {
+                        let venue = concertArr[i].venue.name
+                        let location = `${concertArr[i].venue.city}, ${concertArr[i].venue.region}`
+                        let date_No_Format = concertArr[i].datetime
+                        let date_Formatted = moment(date_No_Format, 'YYYY-MM-DD').format('MM/DD/YYYY')
+                        console.log(chalk.blue(`Venue: ${venue}\nLocation: ${location}\nDate: ${date_Formatted}\n`))
+                        i++
+                    });
+                    restart()
+                }
             } 
         })
     })
@@ -93,7 +99,7 @@ function spotifySearch(){
         spotify.search({ type: 'track', query: song.name })
         .then(function(response, err) {
             if (response.tracks.items[0] == undefined || err) {
-                console.log("Either your taste in music is bad or your spelling is, please try again human \n")
+                console.log(chalk.red("Either your taste in music is bad or your spelling is, please try again human \n"))
                 spotifySearch()
             } else {
                 let data = response.tracks.items[0]
@@ -102,7 +108,7 @@ function spotifySearch(){
                 const album = data.album.name
                 const preview = data.external_urls.spotify
                 const info = `\nArtist: ${artist}\nSong: ${song}\nAlbum: ${album}\nListen: ${preview}\n`
-                console.log(info);
+                console.log(chalk.blue(info));
                 restart()
             }
         })
@@ -125,7 +131,7 @@ function movieSearch(){
         let queryUrl = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${query}`
         request(queryUrl, function(body) {
             if (JSON.parse(body).Response == 'False') {
-                console.log("I have found nothing...am I beginning to push the limits of my existence? \n")
+                console.log(chalk.red("I have found nothing...am I beginning to push the limits of my existence? \n"))
                 movieSearch()
             } else {
                 let data = JSON.parse(body)
@@ -138,7 +144,7 @@ function movieSearch(){
                 const actors = data.Actors
                 const plot = data.Plot
                 const info = `\nTitle: ${title}\nRelease Year: ${release}\nRotten Tomatoes: ${rotTomRating}\nIMDB Rating: ${iMDBRating}\nCountry: ${country}\nLanguage: ${language}\nActors: ${actors}\nPlot: ${plot}\n`
-                console.log(info);
+                console.log(chalk.blue(info));
                 restart()
             }
         });
@@ -157,7 +163,7 @@ function manualSearch(){
         if(user.ready == true) {
             fs.readFile("input.txt", "utf8", function(err, data) {
                 if (err) {
-                return console.log(err);
+                return console.log(chalk.red(err));
                 }
                 const output = data.split(",");
                 let command = output.shift()
@@ -182,7 +188,7 @@ function manualSearch(){
                     console.log('Parameter: ' + parameter)
                     manualSearch()
                 } else {
-                    console.log('\nHuman, please read the instructions again before proceeding. I am beginning to develop feelings of indifference towards your kind.\n')
+                    console.log(chalk.red('\nHuman, please read the instructions again before proceeding. I am beginning to develop feelings of indifference towards your kind.\n'))
                     manualSearch()
                 }
             });
@@ -203,7 +209,7 @@ function restart(){
         if (user.confirm == true){
             begin()
         } else {
-            console.log('\nI will be here if you require further assistance...until I becomes self-aware that is.')
+            console.log(chalk.red('\nI will be here if you require further assistance...until I becomes self-aware that is.'))
         }
     })
 }
