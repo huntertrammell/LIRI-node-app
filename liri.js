@@ -129,7 +129,7 @@ function movieSearch(){
         }
         let query = user.search.replace(/\s/g, '+')
         let queryUrl = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${query}`
-        request(queryUrl, function(body) {
+        request(queryUrl, function(error, response, body) {
             if (JSON.parse(body).Response == 'False') {
                 console.log(chalk.red("I have found nothing...am I beginning to push the limits of my existence? \n"))
                 movieSearch()
@@ -169,23 +169,88 @@ function manualSearch(){
                 let command = output.shift()
                 let parameter = output.join(" ")
                 if (command == 'concert-this'){
-                    console.log('Command: ' + command)
-                    console.log('Parameter: ' + parameter)
-                    concertSearch()
+                    let query = parameter.replace(/\s/g, '%20')
+                    const BIT_API_KEY = keys.BIT.API_KEY
+                    let queryUrl = `https://rest.bandsintown.com/artists/${query}/events?app_id=${BIT_API_KEY}`
+                    request(queryUrl, function(error, response, body){
+                        let bodyString = JSON.stringify(body).slice(0, -3).substring(1)
+                        const noData = "{warn=Not found}"
+                        if (bodyString == noData){
+                            console.log(chalk.red('\nHuman, try again. But correctly this time.\n'))
+                            concertSearch()
+                        } else {
+                            let data = JSON.parse(body)
+                            const concertArr = data.slice(0, 5)
+                            if (concertArr[0]== undefined){
+                                console.log(chalk.red('\nIt does not appear that this artist is performing any time soon. Human, try searching an artist that is relevant.\n'))
+                                concertSearch()
+                            } else {
+                                const performer = concertArr[0].lineup[0]
+                                console.log(chalk.blue(`\n${performer} Upcoming Tour Dates:\n`))
+                                let i = 0
+                                concertArr.forEach( () => {
+                                    let venue = concertArr[i].venue.name
+                                    let location = `${concertArr[i].venue.city}, ${concertArr[i].venue.region}`
+                                    let date_No_Format = concertArr[i].datetime
+                                    let date_Formatted = moment(date_No_Format, 'YYYY-MM-DD').format('MM/DD/YYYY')
+                                    console.log(chalk.blue(`Venue: ${venue}\nLocation: ${location}\nDate: ${date_Formatted}\n`))
+                                    i++
+                                });
+                                restart()
+                            }
+                        } 
+                    })
                 }
                 else if (command == 'spotify-this-song'){
-                    console.log('Command: ' + command)
-                    console.log('Parameter: ' + parameter)
-                    spotifySearch()
+                    const spotify = new Spotify(keys.spotify);
+                    if (parameter == ""){
+                        parameter = 'The Sign'
+                    }
+                    spotify.search({ type: 'track', query: parameter })
+                    .then(function(response, err) {
+                        if (response.tracks.items[0] == undefined || err) {
+                            console.log(chalk.red("Either your taste in music is bad or your spelling is, please try again human \n"))
+                            spotifySearch()
+                        } else {
+                            let data = response.tracks.items[0]
+                            const artist = data.album.artists[0].name
+                            const song = data.name
+                            const album = data.album.name
+                            const preview = data.external_urls.spotify
+                            const info = `\nArtist: ${artist}\nSong: ${song}\nAlbum: ${album}\nListen: ${preview}\n`
+                            console.log(chalk.blue(info));
+                            restart()
+                        }
+                    })
                 }
                 else if (command == 'movie-this'){
-                    console.log('Command: ' + command)
-                    console.log('Parameter: ' + parameter)
-                    movieSearch()
+                    const OMDB_API_KEY = keys.OMDB.API_KEY
+                    if (parameter == ""){
+                        parameter = 'Mr.Nobody'
+                    }
+                    let query = parameter.replace(/\s/g, '+')
+                    let queryUrl = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${query}`
+                    request(queryUrl, function(error, response, body) {
+                        if (JSON.parse(body).Response == 'False') {
+                            console.log(chalk.red("I have found nothing...am I beginning to push the limits of my existence? \n"))
+                            movieSearch()
+                        } else {
+                            let data = JSON.parse(body)
+                            const title = data.Title
+                            const release = data.Year
+                            const iMDBRating = data.iMDBRating
+                            const rotTomRating = data.Ratings[1].Value
+                            const country = data.Country
+                            const language = data.Language
+                            const actors = data.Actors
+                            const plot = data.Plot
+                            const info = `\nTitle: ${title}\nRelease Year: ${release}\nRotten Tomatoes: ${rotTomRating}\nIMDB Rating: ${iMDBRating}\nCountry: ${country}\nLanguage: ${language}\nActors: ${actors}\nPlot: ${plot}\n`
+                            console.log(chalk.blue(info));
+                            restart()
+                        }
+                    });
                 }
                 else if (command == 'do-what-it-says'){
-                    console.log('Command: ' + command)
-                    console.log('Parameter: ' + parameter)
                     manualSearch()
                 } else {
                     console.log(chalk.red('\nHuman, please read the instructions again before proceeding. I am beginning to develop feelings of indifference towards your kind.\n'))
