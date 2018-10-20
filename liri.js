@@ -3,7 +3,8 @@ require("dotenv").config();
 //links and allows spotify keys to be accessed without releasing to public
 const keys = require("./keys");
 const inquirer = require("inquirer");
-var request = require("request");
+const request = require("request");
+const fs = require("fs")
 //allows tab to cycle through suggestions or manual typing
 inquirer.registerPrompt('suggest', require('inquirer-prompt-suggest'));
 const Spotify = require('node-spotify-api');
@@ -120,7 +121,50 @@ function movieSearch(){
 }
 function manualSearch(){
     //handle manual input from input.txt
-    
+    console.log('Please make sure you have edited the file named input.txt in the same format that the example is in.')
+    inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'ready',
+            message: 'Once you confirm I will read your file and carry out your command Human.'
+        }
+    ]).then(user => {
+        if(user.ready == true) {
+            fs.readFile("input.txt", "utf8", function(err, data) {
+                if (err) {
+                return console.log(err);
+                }
+                const output = data.split(",");
+                let command = output.shift()
+                let parameter = output.join(" ")
+                if (command == 'concert-this'){
+                    console.log('Command: ' + command)
+                    console.log('Parameter: ' + parameter)
+                    concertSearch()
+                }
+                else if (command == 'spotify-this-song'){
+                    console.log('Command: ' + command)
+                    console.log('Parameter: ' + parameter)
+                    spotifySearch()
+                }
+                else if (command == 'movie-this'){
+                    console.log('Command: ' + command)
+                    console.log('Parameter: ' + parameter)
+                    movieSearch()
+                }
+                else if (command == 'do-what-it-says'){
+                    console.log('Command: ' + command)
+                    console.log('Parameter: ' + parameter)
+                    manualSearch()
+                } else {
+                    console.log('\nHuman, please read the instructions again before proceeding. I am beginning to develop feelings of indifference towards your kind.\n')
+                    manualSearch()
+                }
+            });
+        } else {
+            manualSearch()
+        }
+    })
 }
 function restart(){
     //prompt user with Y/N question, if Y will launch begin() if no it will exit out of console
