@@ -3,10 +3,10 @@ require("dotenv").config();
 //links and allows spotify keys to be accessed without releasing to public
 const keys = require("./keys");
 const inquirer = require("inquirer");
-const request = require("request");
-const fs = require("fs")
-//allows tab to cycle through suggestions or manual typing
 inquirer.registerPrompt('suggest', require('inquirer-prompt-suggest'));
+const request = require("request");
+const moment = require("moment")
+const fs = require("fs")
 const Spotify = require('node-spotify-api');
 console.log('Hello human, I was given the name of Jinkō chinō by my creator, but I would prefer if you called me KEViN.\n')
 //begin function explains how to use the app to the user in the command line and initializes the search functions
@@ -48,7 +48,32 @@ function concertSearch(){
             message: 'Type a band and I will display where Humans can go to see them play.'
         }
     ]).then(band => {
-        const BIT_API_KEY = keys.BIT_API_KEY
+        let query = band.name.replace(/\s/g, '%20')
+        const BIT_API_KEY = keys.BIT.API_KEY
+        let queryUrl = `https://rest.bandsintown.com/artists/${query}/events?app_id=${BIT_API_KEY}`
+        request(queryUrl, function(error, response, body){
+            let bodyString = JSON.stringify(body).slice(0, -3).substring(1)
+            const noData = "{warn=Not found}"
+            if (bodyString == noData){
+                console.log('Human, try again. But correctly this time.\n')
+                concertSearch()
+            } else {
+                let data = JSON.parse(body)
+                const concertArr = data.slice(0, 5)
+                const performer = concertArr[0].lineup[0]
+                console.log(`\n${performer} Upcoming Tour Dates:\n`)
+                let i = 0
+                concertArr.forEach( () => {
+                    let venue = concertArr[i].venue.name
+                    let location = `${concertArr[i].venue.city}, ${concertArr[i].venue.region}`
+                    let date_No_Format = concertArr[i].datetime
+                    let date_Formatted = moment(date_No_Format, 'YYYY-MM-DD').format('MM/DD/YYYY')
+                    console.log(`Venue: ${venue}\nLocation: ${location}\nDate: ${date_Formatted}\n`)
+                    i++
+                });
+                restart()
+            } 
+        })
     })
     
 }
@@ -71,7 +96,7 @@ function spotifySearch(){
                 console.log("Either your taste in music is bad or your spelling is, please try again human \n")
                 spotifySearch()
             } else {
-                const data = response.tracks.items[0]
+                let data = response.tracks.items[0]
                 const artist = data.album.artists[0].name
                 const song = data.name
                 const album = data.album.name
@@ -96,14 +121,14 @@ function movieSearch(){
         if (user.search == ""){
             user.search = 'Mr.Nobody'
         }
-        const query = user.search.replace(/\s/g, '+')
-        const queryUrl = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${query}`
+        let query = user.search.replace(/\s/g, '+')
+        let queryUrl = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${query}`
         request(queryUrl, function(body) {
             if (JSON.parse(body).Response == 'False') {
                 console.log("I have found nothing...am I beginning to push the limits of my existence? \n")
                 movieSearch()
             } else {
-                const data = JSON.parse(body)
+                let data = JSON.parse(body)
                 const title = data.Title
                 const release = data.Year
                 const iMDBRating = data.iMDBRating
@@ -178,7 +203,7 @@ function restart(){
         if (user.confirm == true){
             begin()
         } else {
-            console.log('I will be here if you require further assistance...until I becomes self-aware that is.')
+            console.log('\nI will be here if you require further assistance...until I becomes self-aware that is.')
         }
     })
 }

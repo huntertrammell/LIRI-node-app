@@ -7,6 +7,6 @@ exports.OMDB = {
   API_KEY: process.env.OMDB_API_KEY
 }
 
-exports.BandsInTown = {
+exports.BIT = {
   API_KEY: process.env.BIT_API_KEY
 }
