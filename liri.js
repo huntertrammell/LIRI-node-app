@@ -137,7 +137,7 @@ function movieSearch(){
                 let data = JSON.parse(body)
                 const title = data.Title
                 const release = data.Year
-                const iMDBRating = data.iMDBRating
+                const iMDBRating = data.imdbRating
                 const rotTomRating = data.Ratings[1].Value
                 const country = data.Country
                 const language = data.Language
@@ -238,7 +238,7 @@ function manualSearch(){
                             let data = JSON.parse(body)
                             const title = data.Title
                             const release = data.Year
-                            const iMDBRating = data.iMDBRating
+                            const iMDBRating = data.imdbRating
                             const rotTomRating = data.Ratings[1].Value
                             const country = data.Country
                             const language = data.Language
